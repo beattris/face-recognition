@@ -1,53 +1,50 @@
-import React, { Component } from 'react'
+import React, { Component } from "react";
 import Particles from "react-tsparticles";
-import Navigation from './components/Navigation/Navigation';
-import Logo from './components/Logo/Logo';
-import Rank from './components/Rank/Rank';
-import ImageLinkForm from './components/ImageLinkForm/ImageLinkForm';
-import './App.css';
+import Clarifai from "clarifai";
+import Navigation from "./components/Navigation/Navigation";
+import Logo from "./components/Logo/Logo";
+import Rank from "./components/Rank/Rank";
+import ImageLinkForm from "./components/ImageLinkForm/ImageLinkForm";
+import FaceRecognition from "./components/FaceRecognition/FaceRecognition";
+import "./App.css";
 
-// const particlesOptions = {
-//   particles: {
-//     number:{
-//       value: 30,
-//       density:{
-//         enable: true,
-//         value_area: 800
-//       }
-//     }
-//   }
-// }
+// const app = new Clarifai.App({
+//   apiKey: '663965f3b68f4c82852fed5e1a2d2c33'
+// });
+
+const raw = JSON.stringify({
+  "user_app_id": {
+		"user_id": "n8ha1c21ofd6",
+		"app_id": "face-detect"
+	},
+  "inputs": [
+    {
+      "data": {
+        "image": {
+          "url": "https://samples.clarifai.com/metro-north.jpg"
+        }
+      }
+    }
+  ]
+});
+
+const requestOptions = {
+  method: 'POST',
+  headers: {
+    'Accept': 'application/json',
+    'Authorization': 'Key 3caddf5109af4bdd94fd3b6330f28179'
+  },
+  body: raw
+};
+
+// NOTE: MODEL_VERSION_ID is optional, you can also call prediction with the MODEL_ID only
+// https://api.clarifai.com/v2/models/{YOUR_MODEL_ID}/outputs
+// this will default to the latest version_id
+
+
 
 const particlesOptions = {
   fpsLimit: 60,
-  interactivity: {
-    events: {
-      onClick: {
-        enable: true,
-        mode: "push",
-      },
-      onHover: {
-        enable: true,
-        mode: "repulse",
-      },
-      resize: true,
-    },
-    modes: {
-      bubble: {
-        distance: 400,
-        duration: 2,
-        opacity: 0.8,
-        size: 40,
-      },
-      push: {
-        quantity: 4,
-      },
-      repulse: {
-        distance: 200,
-        duration: 0.4,
-      },
-    },
-  },
   particles: {
     color: {
       value: "#ffffff",
@@ -57,9 +54,9 @@ const particlesOptions = {
       distance: 150,
       enable: true,
       opacity: 0.5,
-      width: 1,
+      width: 1, 
     },
-    collisions: {
+    collisions: {    
       enable: true,
     },
     move: {
@@ -89,20 +86,50 @@ const particlesOptions = {
     },
   },
   detectRetina: true,
-}
+};
 
-class App extends Component{
-  render(){
+class App extends Component {
+  constructor() {
+    super();
+    this.state = {
+      input: "",
+      imageUrl: ""
+    };
+  }
+
+  onInputChange = (event) => {
+    this.setState({ input: event.target.value});
+  };
+
+  onButtonSubmit = () => {
+    this.setState({imageUrl: this.state.input})
+    // app.models.predict("663965f3b68f4c82852fed5e1a2d2c33", "https://samples.clarifai.com/face-det.jpg")
+    // .then(
+    //   function(response) {
+    //     console.log(response);
+    //   },
+    //   function(err){
+    //     // there was an error
+    //   }
+    // )
+    fetch("https://api.clarifai.com/v2/models/f76196b43bbd45c99b4f3cd8e8b40a8a/outputs", requestOptions)
+    .then(response => console.log(response))
+    .then(result => console.log(JSON.parse(result, null, 2).outputs[0].data))
+    .catch(error => console.log('error', error));
+  };
+
+  render() {
     return (
       <div className="App">
-        <Particles className='particles' params={particlesOptions}/>
-       <Navigation />
-       <Logo />
-       <Rank />
-       <ImageLinkForm />
-       {/* 
-       
-       <FaceRecognition />} */}
+        <Particles className="particles" params={particlesOptions} />
+        <Navigation />      
+        <Logo />
+        <Rank />
+        <ImageLinkForm 
+        onInputChange={this.onInputChange}
+        onButtonSubmit={this.onButtonSubmit}
+        />
+       <FaceRecognition imageUrl={this.state.imageUrl} />
       </div>
     );
   }
