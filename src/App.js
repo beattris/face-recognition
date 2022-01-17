@@ -13,35 +13,33 @@ import "./App.css";
 // });
 
 const raw = JSON.stringify({
-  "user_app_id": {
-		"user_id": "n8ha1c21ofd6",
-		"app_id": "face-detect"
-	},
-  "inputs": [
+  user_app_id: {
+    user_id: "n8ha1c21ofd6",
+    app_id: "face-detect",
+  },
+  inputs: [
     {
-      "data": {
-        "image": {
-          "url": "https://samples.clarifai.com/metro-north.jpg"
-        }
-      }
-    }
-  ]
+      data: {
+        image: {
+          url: "https://samples.clarifai.com/metro-north.jpg",
+        },
+      },
+    },
+  ],
 });
 
 const requestOptions = {
-  method: 'POST',
+  method: "POST",
   headers: {
-    'Accept': 'application/json',
-    'Authorization': 'Key 3caddf5109af4bdd94fd3b6330f28179'
+    Accept: "application/json",
+    Authorization: "Key 3caddf5109af4bdd94fd3b6330f28179",
   },
-  body: raw
+  body: raw,
 };
 
 // NOTE: MODEL_VERSION_ID is optional, you can also call prediction with the MODEL_ID only
 // https://api.clarifai.com/v2/models/{YOUR_MODEL_ID}/outputs
 // this will default to the latest version_id
-
-
 
 const particlesOptions = {
   fpsLimit: 60,
@@ -54,9 +52,9 @@ const particlesOptions = {
       distance: 150,
       enable: true,
       opacity: 0.5,
-      width: 1, 
+      width: 1,
     },
-    collisions: {    
+    collisions: {
       enable: true,
     },
     move: {
@@ -93,16 +91,39 @@ class App extends Component {
     super();
     this.state = {
       input: "",
-      imageUrl: ""
+      imageUrl: "",
+      box: {},
     };
   }
 
+  // data.response.outputs[0].data.regions[0].region_info.bounding_box
+  // JSON.parse(result, null, 2)
+
+  calculateFaceLocation = (data) => {
+    const clarifaiFace = JSON.parse(data, null, 2).outputs[0].data.regions[0]
+      .region_info.bounding_box;
+    const image = document.getElementById("inputimage");
+    const width = Number(image.width);
+    const height = Number(image.height);
+    return {
+      leftCol: clarifaiFace.left_col * width,
+      topRow: clarifaiFace.top_row * height,
+      rightCol: width - clarifaiFace.right_col * width,
+      bottomRow: height - clarifaiFace.bottom_row * height,
+    };
+  };
+
+  displayFaceBox = (box) => {
+    console.log(box);
+    this.setState({ box: box });
+  };
+
   onInputChange = (event) => {
-    this.setState({ input: event.target.value});
+    this.setState({ input: event.target.value });
   };
 
   onButtonSubmit = () => {
-    this.setState({imageUrl: this.state.input})
+    this.setState({ imageUrl: this.state.input });
     // app.models.predict("663965f3b68f4c82852fed5e1a2d2c33", "https://samples.clarifai.com/face-det.jpg")
     // .then(
     //   function(response) {
@@ -112,24 +133,32 @@ class App extends Component {
     //     // there was an error
     //   }
     // )
-    fetch("https://api.clarifai.com/v2/models/f76196b43bbd45c99b4f3cd8e8b40a8a/outputs", requestOptions)
-    .then(response => console.log(response))
-    .then(result => console.log(JSON.parse(result, null, 2).outputs[0].data))
-    .catch(error => console.log('error', error));
+
+    fetch(
+      "https://api.clarifai.com/v2/models/f76196b43bbd45c99b4f3cd8e8b40a8a/outputs",
+      requestOptions
+    )
+      .then((response) => response.text())
+      // .then(result => console.log(JSON.parse(result, null, 2).outputs[0].data.regions[0].region_info.bounding_box))
+      .then((result) => this.displayFaceBox(this.calculateFaceLocation(result)))
+      .catch((error) => console.log("error", error));
   };
 
   render() {
     return (
       <div className="App">
         <Particles className="particles" params={particlesOptions} />
-        <Navigation />      
+        <Navigation />
         <Logo />
         <Rank />
-        <ImageLinkForm 
-        onInputChange={this.onInputChange}
-        onButtonSubmit={this.onButtonSubmit}
+        <ImageLinkForm
+          onInputChange={this.onInputChange}
+          onButtonSubmit={this.onButtonSubmit}
         />
-       <FaceRecognition imageUrl={this.state.imageUrl} />
+        <FaceRecognition 
+          box={this.state.box} 
+          imageUrl={this.state.imageUrl} 
+        />
       </div>
     );
   }
