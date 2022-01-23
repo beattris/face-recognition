@@ -6,40 +6,9 @@ import Logo from "./components/Logo/Logo";
 import Rank from "./components/Rank/Rank";
 import ImageLinkForm from "./components/ImageLinkForm/ImageLinkForm";
 import FaceRecognition from "./components/FaceRecognition/FaceRecognition";
+// import Apicall from "./components/Apicall/Apicall";
 import "./App.css";
 
-// const app = new Clarifai.App({
-//   apiKey: '663965f3b68f4c82852fed5e1a2d2c33'
-// });
-
-const raw = JSON.stringify({
-  user_app_id: {
-    user_id: "n8ha1c21ofd6",
-    app_id: "face-detect",
-  },
-  inputs: [
-    {
-      data: {
-        image: {
-          url: "https://samples.clarifai.com/metro-north.jpg",
-        },
-      },
-    },
-  ],
-});
-
-const requestOptions = {
-  method: "POST",
-  headers: {
-    Accept: "application/json",
-    Authorization: "Key 3caddf5109af4bdd94fd3b6330f28179",
-  },
-  body: raw,
-};
-
-// NOTE: MODEL_VERSION_ID is optional, you can also call prediction with the MODEL_ID only
-// https://api.clarifai.com/v2/models/{YOUR_MODEL_ID}/outputs
-// this will default to the latest version_id
 
 const particlesOptions = {
   fpsLimit: 60,
@@ -91,7 +60,6 @@ class App extends Component {
     super();
     this.state = {
       input: "",
-      imageUrl: "",
       box: {},
     };
   }
@@ -123,20 +91,35 @@ class App extends Component {
   };
 
   onButtonSubmit = () => {
-    this.setState({ imageUrl: this.state.input });
-    // app.models.predict("663965f3b68f4c82852fed5e1a2d2c33", "https://samples.clarifai.com/face-det.jpg")
-    // .then(
-    //   function(response) {
-    //     console.log(response);
-    //   },
-    //   function(err){
-    //     // there was an error
-    //   }
-    // )
+    // this.setState({ imageUrl: this.state.input });
+    const raw = JSON.stringify({
+      user_app_id: {
+        user_id: "n8ha1c21ofd6",
+        app_id: "face-detect",
+      },
+      inputs: [
+        {
+          data: {
+            image: {
+              // url: "https://api.time.com/wp-content/uploads/2014/06/screen-shot-2014-06-09-at-9-20-55-am.png"
+              url: this.state.input,
+              // url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8ZmFjZXxlbnwwfHwwfHw%3D&auto=format&fit=crop&w=500&q=60"
+            },
+          },
+        },
+      ],
+    });
 
     fetch(
       "https://api.clarifai.com/v2/models/f76196b43bbd45c99b4f3cd8e8b40a8a/outputs",
-      requestOptions
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          Authorization: "Key 3caddf5109af4bdd94fd3b6330f28179",
+        },
+        body: raw,
+      }
     )
       .then((response) => response.text())
       // .then(result => console.log(JSON.parse(result, null, 2).outputs[0].data.regions[0].region_info.bounding_box))
@@ -148,6 +131,7 @@ class App extends Component {
     return (
       <div className="App">
         <Particles className="particles" params={particlesOptions} />
+        {/* <Apicall triedLink={this.state.imageUrl}/> */}
         <Navigation />
         <Logo />
         <Rank />
@@ -155,10 +139,7 @@ class App extends Component {
           onInputChange={this.onInputChange}
           onButtonSubmit={this.onButtonSubmit}
         />
-        <FaceRecognition 
-          box={this.state.box} 
-          imageUrl={this.state.imageUrl} 
-        />
+        <FaceRecognition box={this.state.box} imageUrl={this.state.input} />
       </div>
     );
   }
