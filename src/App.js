@@ -11,7 +11,6 @@ import Register from "./components/Register/Register";
 // import Apicall from "./components/Apicall/Apicall";
 import "./App.css";
 
-
 const particlesOptions = {
   fpsLimit: 60,
   particles: {
@@ -66,6 +65,12 @@ class App extends Component {
       route: 'signin',
       isSignedIn: false
     };
+  }
+
+  componentDidMount(){
+    fetch('http://localhost:3000')
+     .then(response => response.json())
+      .then(console.log);
   }
 
   // data.response.outputs[0].data.regions[0].region_info.bounding_box
