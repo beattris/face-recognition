@@ -89,6 +89,7 @@ class App extends Component {
   calculateFaceLocation = (data) => {
     const clarifaiFace = JSON.parse(data, null, 2).outputs[0].data.regions[0]
       .region_info.bounding_box;
+      console.log(clarifaiFace)
     const image = document.getElementById("inputimage");
     const width = Number(image.width);
     const height = Number(image.height);
@@ -120,9 +121,7 @@ class App extends Component {
         {
           data: {
             image: {
-              // url: "https://api.time.com/wp-content/uploads/2014/06/screen-shot-2014-06-09-at-9-20-55-am.png"
               url: this.state.input,
-              // url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8ZmFjZXxlbnwwfHwwfHw%3D&auto=format&fit=crop&w=500&q=60"
             },
           },
         },
@@ -164,7 +163,7 @@ class App extends Component {
          ? 
           <div>
             <Logo />
-            <Rank />
+            <Rank name={this.state.user.name} entries={this.state.user.entries} />
             <ImageLinkForm
             onInputChange={this.onInputChange}
             onButtonSubmit={this.onButtonSubmit}
@@ -173,7 +172,7 @@ class App extends Component {
           </div>
           : (
             this.state.route === 'signin'
-            ? <SignIn onRouteChange={this.onRouteChange} />
+            ? <SignIn onRouteChange={this.onRouteChange} loadUser={this.loadUser} />
             : <Register onRouteChange={this.onRouteChange} loadUser={this.loadUser} />
           )
         }
