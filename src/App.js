@@ -56,23 +56,25 @@ const particlesOptions = {
   detectRetina: true,
 };
 
+const initialState = {
+  input: "",
+  box: {},
+  route: 'signin',
+  isSignedIn: false,
+  user: {
+    id: '',
+    name: '',
+    email: '',
+    // password: '',
+    entries: 0,
+    joined: ''
+  }
+};
+
 class App extends Component {
   constructor() {
     super();
-    this.state = {
-      input: "",
-      box: {},
-      route: 'signin',
-      isSignedIn: false,
-      user: {
-        id: '',
-        name: "",
-        email: "",
-        password: "",
-        entries: 0,
-        joined: ''
-      }
-    };
+    this.state = initialState
   }
 
   loadUser = (data) => {
@@ -80,7 +82,7 @@ class App extends Component {
       id: data.id,
       name: data.name,
       email: data.email,
-      password: data.password,
+      // password: data.password,
       entries: data.entries,
       joined: data.joined
     }})
@@ -109,6 +111,12 @@ class App extends Component {
   onInputChange = (event) => {
     this.setState({ input: event.target.value });
   };
+
+  onEnter = (event) => {
+    if (event.key === 'Enter') {
+      this.onButtonSubmit();
+    }
+  }
 
   onButtonSubmit = () => {
     // this.setState({ imageUrl: this.state.input });
@@ -139,15 +147,32 @@ class App extends Component {
         body: raw,
       }
     )
-      .then((response) => response.text())
-      // .then(result => console.log(JSON.parse(result, null, 2).outputs[0].data.regions[0].region_info.bounding_box))
-      .then((result) => this.displayFaceBox(this.calculateFaceLocation(result)))
-      .catch((error) => console.log("error", error));
+    .then((response) => response.text())
+    .then((response) => {
+      if (response){
+        fetch('http://localhost:3000/image', {
+          method: 'put',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            id: this.state.user.id
+          })
+        })
+        .then(response => response.json())
+        .then(count => {
+          this.setState(Object.assign(this.state.user, {entries: count}));
+        });
+      }
+      this.displayFaceBox(this.calculateFaceLocation(response));
+    })
+    .catch((error) => console.log('error', error));
+      // .then((response) => response.text())
+      // .then((result) => this.displayFaceBox(this.calculateFaceLocation(result)))
+      // .catch((error) => console.log("error", error));
   };
 
   onRouteChange = (route) => {
     if(route === 'signout'){
-      this.setState({isSignedIn: false})
+      this.setState(initialState)
     }else if (route === 'home'){
       this.setState({isSignedIn: true})
     }
@@ -155,6 +180,7 @@ class App extends Component {
   }
 
   render() {
+    const { name, entries } = this.state.user;
     return (
       <div className="App">
         <Particles className="particles" params={particlesOptions} />
@@ -163,10 +189,11 @@ class App extends Component {
          ? 
           <div>
             <Logo />
-            <Rank name={this.state.user.name} entries={this.state.user.entries} />
+            <Rank name={name} entries={entries} />
             <ImageLinkForm
             onInputChange={this.onInputChange}
             onButtonSubmit={this.onButtonSubmit}
+            onEnter={this.onEnter}
             />
             <FaceRecognition box={this.state.box} imageUrl={this.state.input} />
           </div>
