@@ -115,6 +115,7 @@ class App extends Component {
   onEnter = (event) => {
     if (event.key === 'Enter') {
       this.onButtonSubmit();
+      console.log('working')
     }
   }
 
@@ -132,6 +133,7 @@ class App extends Component {
               url: this.state.input,
             },
           },
+          
         },
       ],
     });
@@ -176,7 +178,7 @@ class App extends Component {
     }else if (route === 'home'){
       this.setState({isSignedIn: true})
     }
-    this.setState({route : route});
+    this.setState({route});
   }
 
   render() {
